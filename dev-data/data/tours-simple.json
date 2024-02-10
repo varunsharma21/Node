@@ -135,19 +135,17 @@
     "startDates": ["2021-12-16,10:00", "2022-01-16,10:00", "2022-12-12,10:00"]
   },
   {
-    "id": "[object Object]1",
-    "name": "Tour name",
-    "duration": 12,
-    "difficulty": "easy"
+    "id": 9,
+    "name": "Test tour 2",
+    "duration": 5,
+    "difficulty": "easy",
+    "price": 300
   },
   {
-    "id": "[object Object]1",
-    "name": "Tour name",
-    "duration": 12,
-    "difficulty": "easy"
-  },
-  { "id": 131, "name": "Tour name", "duration": 12, "difficulty": "easy" },
-  { "id": 132, "name": "Tour name", "duration": 12, "difficulty": "easy" },
-  { "id": 133, "name": "Tour name", "duration": 12, "difficulty": "easy" },
-  { "id": 134, "name": "Tour name", "duration": 12, "difficulty": "easy" }
+    "id": 10,
+    "name": "Test tour 2",
+    "duration": 5,
+    "difficulty": "easy",
+    "price": 100
+  }
 ]
