@@ -51,6 +51,7 @@ const tourSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now(), // Read about it. Mongo parses all types of time stamps into date.
+    select: false, // To hide createdAt from response permanently.
   },
   startDates: [Date],
 });

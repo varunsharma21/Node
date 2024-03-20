@@ -2,8 +2,59 @@ const Tour = require('./../models/tourModel');
 
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    console.log(req.query);
+    // BUILD QUERY
+    // 1A Filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
 
+    // 1B Advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(lte|lt|gte|gt)\b/g, (match) => `$${match}`);
+
+    // Not using await here directly coz we will not be able to use sort, limit... etc methods.
+    let query = Tour.find(JSON.parse(queryStr));
+
+    // 2 Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy); // Mongoose -> .sort('price ratingsAverage')
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    // 3 Field Limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields); // Mongoose -> .select('price ratingsAverage')
+    } else {
+      query = query.select('-__v');
+    }
+
+    // 4 Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
+
+    // EXECUTE QUERY
+    const tours = await query;
+
+    // Using mongoose.....
+    // const tours = await Tour.find()
+    //   .where('difficulty')
+    //   .equals('easy')
+    //   .where('duration')
+    //   .equals(5);
+
+    // SEND RESPONSE
     res.status(200).json({
       status: 'success',
       results: tours.length,
@@ -95,100 +146,3 @@ exports.deleteTour = async (req, res) => {
     });
   }
 };
-
-/******
-
-
-const fs = require('fs');
-const Tour = require('./../models/tourModel');
-
-// A middleware function.
-exports.checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res
-      .status(400)
-      .json({ status: 'fail', message: 'name or price property not found.' });
-  }
-  next();
-};
-
-// We could have also used this function in functions below.
-// Instead we chose do use it in tourRoutes.js bcoz of philosophy of express
-// which says we should always work with middleware stack/pipeline as much as possible.
-exports.checkID = (req, res, next, val) => {
-  // 'val' represents value of parameter.
-  console.log(`The ID is ${val}`);
-  if (req.params.id * 1 > tours.length) {
-    // 'return' is very important here. As it will go to next() and will send headers after we have sent response
-    // which is not allowed.
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
-  next();
-};
-
-exports.getAllTours = (req, res) => {
-  console.log(req.url, req.params, req.requestTime);
-  res.status(200).json({
-    status: 'success',
-    length: tours.length,
-    data: {
-      tours, // tours: tours can be written as tours.
-    },
-  });
-};
-
-exports.getTour = (req, res) => {
-  console.log(req.params);
-
-  const id = req.params.id * 1; // Converting string into number.
-  const tour = tours.find((el) => el.id === id);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour, // tour: tour can be written as tour.
-    },
-  });
-};
-
-exports.createTour = (req, res) => {
-  // console.log(req.body);
-  const newId = tours[tours.length - 1].id + 1;
-  const newTour = Object.assign({ id: newId }, req.body);
-
-  tours.push(newTour);
-
-  fs.writeFile(
-    `${__dirname}/../dev-data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tours: newTour,
-        },
-      });
-    }
-  );
-};
-
-exports.updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updating the tour...>',
-    },
-  });
-};
-
-exports.deleteTour = (req, res) => {
-  // 204 means no content.
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-};
- */
